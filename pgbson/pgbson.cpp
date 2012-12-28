@@ -9,6 +9,13 @@
 extern "C" {
 #include "postgres.h"
 #include "fmgr.h"
+#include "executor/executor.h"
+#include "utils/typcache.h"
+#include "utils/lsyscache.h"
+#include "utils/syscache.h"
+#include "utils/timestamp.h"
+#include "parser/parse_coerce.h"
+#include "catalog/pg_type.h"
 
 // bson access macros
 #define DatumGetBson(X) ((bytea *) PG_DETOAST_DATUM_PACKED(X))
@@ -84,6 +91,195 @@ convert_element<std::string>(PG_FUNCTION_ARGS, const mongo::BSONElement e)
         PG_RETURN_NULL();
     }
 }
+static
+std::string
+get_typename(Oid typid)
+{
+    HeapTuple	tp;
+
+    tp = SearchSysCache1(TYPEOID, ObjectIdGetDatum(typid));
+    if (HeapTupleIsValid(tp))
+    {
+        Form_pg_type typtup = (Form_pg_type) GETSTRUCT(tp);
+
+        NameData result = typtup->typname;
+        ReleaseSysCache(tp);
+        return std::string(NameStr(result));
+    }
+    else
+        return std::string();
+}
+
+static
+void
+composite_to_bson(mongo::BSONObjBuilder& builder, Datum composite);
+
+static
+void
+datum_to_bson(const char* field_name, mongo::BSONObjBuilder& builder,
+    Datum val, bool is_null, Oid typid)
+{
+    std::cout << "BEGIN datum_to_bson, field_name=" << field_name << ", typeid=" << typid << std::endl;
+
+    if (field_name == NULL)
+    {
+        field_name = "";
+    }
+
+    if (is_null)
+    {
+        builder.appendNull(field_name);
+    }
+    else
+    {
+        switch(typid)
+        {
+            case BOOLOID:
+                 builder.append(field_name, DatumGetBool(val));
+                 break;
+
+            case CHAROID:
+            {
+                char c = DatumGetChar(val);
+                builder.append(field_name, &c, 1);
+                break;
+            }
+
+            case INT8OID:
+                builder.append(field_name, (long long)DatumGetInt64(val));
+                break;
+
+            case INT2OID:
+                builder.append(field_name, DatumGetInt16(val));
+                break;
+
+            case INT4OID:
+                builder.append(field_name, DatumGetInt32(val));
+                break;
+
+            case TEXTOID:
+            case JSONOID:
+            case XMLOID:
+            {
+                text* t = DatumGetTextP(val);
+                builder.append(field_name, VARDATA(t), VARSIZE(t)-VARHDRSZ+1);
+                break;
+            }
+
+            case FLOAT4OID:
+                builder.append(field_name, DatumGetFloat4(val));
+                break;
+
+            case FLOAT8OID:
+                builder.append(field_name, DatumGetFloat8(val));
+                break;
+
+            case RECORDOID:
+            {
+                mongo::BSONObjBuilder sub(builder.subobjStart(field_name));
+                composite_to_bson(sub, val);
+                sub.done();
+                break;
+            }
+
+            case TIMESTAMPOID:
+            {
+                Timestamp ts = DatumGetTimestamp(val);
+                #ifdef HAVE_INT64_TIMESTAMP
+                mongo::Date_t date(ts);
+                #else
+                mongo::Date_t date(ts * 1000);
+                #endif
+
+                builder.append(field_name, date);
+                break;
+            }
+
+            default:
+            {
+                std::cout << "datum_to_bson - unknown type, using text output." << std::endl;
+                std::cout << "datum_to_bson - type=" << get_typename(typid) << std::endl;
+                if (get_typename(typid) == "bson")
+                {
+                    bytea* data = DatumGetByteaPP(val);
+                    mongo::BSONObj obj(VARDATA(data));
+                    builder.append(field_name, obj);
+                }
+                else
+                {
+                    // use text output for the type
+                    bool typisvarlena = false;
+                    Oid typoutput;
+                    getTypeOutputInfo(typid, &typoutput, &typisvarlena);
+                    std::cout << "datum_to_bson - typisvarlena=" << std::boolalpha << typisvarlena << std::endl;
+                    Datum out_val = val;
+                    /*
+                     * If we have a toasted datum, forcibly detoast it here to avoid
+                     * memory leakage inside the type's output routine.
+                     */
+                    if (typisvarlena)
+                    {
+                        out_val = PointerGetDatum(PG_DETOAST_DATUM(val));
+                        std::cout << "datum_to_bson - var len valuie detoasted" << std::endl;
+                    }
+
+                    char* outstr = OidOutputFunctionCall(typoutput, out_val);
+                    builder.append(field_name, outstr);
+
+                    /* Clean up detoasted copy, if any */
+                    if (val != out_val)
+                        pfree(DatumGetPointer(out_val));
+                }
+            }
+        } // switch
+    } // if not null
+
+    std::cout << "END datum_to_bson, field_name=" << field_name << std::endl;
+
+}
+
+
+
+static
+void
+composite_to_bson(mongo::BSONObjBuilder& builder, Datum composite)
+{
+    std::cout << "BEGIN composite_to_bson" << std::endl;
+
+    HeapTupleHeader td;
+    Oid			tupType;
+    int32		tupTypmod;
+    TupleDesc	tupdesc;
+    HeapTupleData tmptup;
+
+    td = DatumGetHeapTupleHeader(composite);
+
+    /* Extract rowtype info and find a tupdesc */
+    tupType = HeapTupleHeaderGetTypeId(td);
+    tupTypmod = HeapTupleHeaderGetTypMod(td);
+    tupdesc = lookup_rowtype_tupdesc(tupType, tupTypmod);
+
+    /* Build a temporary HeapTuple control structure */
+    tmptup.t_len = HeapTupleHeaderGetDatumLength(td);
+    tmptup.t_data = td;
+    HeapTupleData* tuple = &tmptup;
+
+    for (int i = 0; i < tupdesc->natts; i++)
+    {
+        bool		isnull;
+
+        if (tupdesc->attrs[i]->attisdropped)
+            continue;
+
+        const char* field_name = NameStr(tupdesc->attrs[i]->attname);
+        Datum val = heap_getattr(tuple, i + 1, tupdesc, &isnull);
+        datum_to_bson(field_name, builder, val, isnull, tupdesc->attrs[i]->atttypid);
+
+    }
+
+    ReleaseTupleDesc(tupdesc);
+    std::cout << "END composite_to_bson" << std::endl;
+}
 
 extern "C" {
 
@@ -131,7 +327,6 @@ bson_in(PG_FUNCTION_ARGS)
     }
 }
 
-
 PG_FUNCTION_INFO_V1(bson_get_string);
 Datum
 bson_get_string(PG_FUNCTION_ARGS)
@@ -139,6 +334,21 @@ bson_get_string(PG_FUNCTION_ARGS)
     return bson_get<std::string>(fcinfo);
 }
 
+// Converts composite type to BSON
+//
+// Code of this function is based on row_to_json
+PG_FUNCTION_INFO_V1(row_to_bson);
+Datum
+row_to_bson(PG_FUNCTION_ARGS)
+{
+    std::cout << "row_to_bson" << std::endl;
+    Datum record = PG_GETARG_DATUM(0);
+    mongo::BSONObjBuilder builder;
+
+    composite_to_bson(builder, record);
+
+    return return_bson(builder.obj());
+}
 
 
 }

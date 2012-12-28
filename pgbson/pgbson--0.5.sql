@@ -19,6 +19,9 @@ CREATE TYPE bson (
 -- object inspection
 
 CREATE FUNCTION bson_get_string(bson, text) RETURNS text
-AS 'MODULE_PATHNAME', 'bson_get_string'
+AS 'MODULE_PATHNAME'
 LANGUAGE C STRICT IMMUTABLE;
 
+CREATE FUNCTION row_to_bson(record) RETURNS bson
+AS 'MODULE_PATHNAME'
+LANGUAGE C STRICT IMMUTABLE;
