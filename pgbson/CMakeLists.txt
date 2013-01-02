@@ -29,7 +29,8 @@ set(MONGO_SRC "mongo-cxx-driver-v2.2/src/")
 include_directories(BEFORE ${MONGO_SRC} ${MONGO_SRC}/mongo)
 
 add_library(pgbson SHARED
-    pgbson.cpp
+    pgbson_exports.cpp
+    pgbson_internal.hpp pgbson_internal.cpp
 
     # mongo sources (list copied from ${MONGO_SRC}/SConscript.client)
     ${MONGO_SRC}/mongo/bson/oid.cpp
