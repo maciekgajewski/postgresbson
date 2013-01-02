@@ -24,8 +24,28 @@ extern "C" {
 
 }
 
-
 #include <string>
+
+// logging (to stdout)
+#ifdef PGBSON_LOGGING
+    #define PGBSON_LOG std::cout
+    #define PGBSON_FLUSH_LOG std::endl
+#else
+    struct null_stream
+    {
+        static null_stream instance;
+    };
+
+    template<typename T>
+    null_stream& operator << (null_stream& l, const T&)
+    {
+        return l;
+    }
+
+    #define PGBSON_LOG null_stream::instance
+    #define PGBSON_FLUSH_LOG 0
+
+#endif
 
 // postgres helpers
 Datum return_string(const std::string& s);
