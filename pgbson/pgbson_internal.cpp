@@ -1,10 +1,5 @@
 #include "pgbson_internal.hpp"
 
-#ifndef PGBSON_LOGGING
-null_stream null_stream::instance;
-#endif
-
-
 Datum return_string(const std::string& s)
 {
     std::size_t text_size = s.length() + VARHDRSZ;
@@ -51,7 +46,7 @@ std::string get_typename(Oid typid)
 
 void composite_to_bson(mongo::BSONObjBuilder& builder, Datum composite)
 {
-    PGBSON_LOG << "BEGIN composite_to_bson" << PGBSON_FLUSH_LOG;
+    PGBSON_LOG << "BEGIN composite_to_bson" << PGBSON_ENDL;
 
     HeapTupleHeader td;
     Oid			tupType;
@@ -85,13 +80,13 @@ void composite_to_bson(mongo::BSONObjBuilder& builder, Datum composite)
     }
 
     ReleaseTupleDesc(tupdesc);
-    PGBSON_LOG << "END composite_to_bson" << PGBSON_FLUSH_LOG;
+    PGBSON_LOG << "END composite_to_bson" << PGBSON_ENDL;
 }
 
 void datum_to_bson(const char* field_name, mongo::BSONObjBuilder& builder,
     Datum val, bool is_null, Oid typid)
 {
-    PGBSON_LOG << "BEGIN datum_to_bson, field_name=" << field_name << ", typeid=" << typid << PGBSON_FLUSH_LOG;
+    PGBSON_LOG << "BEGIN datum_to_bson, field_name=" << field_name << ", typeid=" << typid << PGBSON_ENDL;
 
     if (field_name == NULL)
     {
@@ -169,8 +164,8 @@ void datum_to_bson(const char* field_name, mongo::BSONObjBuilder& builder,
 
             default:
             {
-                PGBSON_LOG << "datum_to_bson - unknown type, using text output." << PGBSON_FLUSH_LOG;
-                PGBSON_LOG << "datum_to_bson - type=" << get_typename(typid) << PGBSON_FLUSH_LOG;
+                PGBSON_LOG << "datum_to_bson - unknown type, using text output." << PGBSON_ENDL;
+                PGBSON_LOG << "datum_to_bson - type=" << get_typename(typid) << PGBSON_ENDL;
                 if (get_typename(typid) == "bson")
                 {
                     bytea* data = DatumGetByteaPP(val);
@@ -183,7 +178,7 @@ void datum_to_bson(const char* field_name, mongo::BSONObjBuilder& builder,
                     bool typisvarlena = false;
                     Oid typoutput;
                     getTypeOutputInfo(typid, &typoutput, &typisvarlena);
-                    PGBSON_LOG << "datum_to_bson - typisvarlena=" << std::boolalpha << typisvarlena << PGBSON_FLUSH_LOG;
+                    PGBSON_LOG << "datum_to_bson - typisvarlena=" << std::boolalpha << typisvarlena << PGBSON_ENDL;
                     Datum out_val = val;
                     /*
                      * If we have a toasted datum, forcibly detoast it here to avoid
@@ -192,7 +187,7 @@ void datum_to_bson(const char* field_name, mongo::BSONObjBuilder& builder,
                     if (typisvarlena)
                     {
                         out_val = PointerGetDatum(PG_DETOAST_DATUM(val));
-                        PGBSON_LOG << "datum_to_bson - var len valuie detoasted" << PGBSON_FLUSH_LOG;
+                        PGBSON_LOG << "datum_to_bson - var len valuie detoasted" << PGBSON_ENDL;
                     }
 
                     char* outstr = OidOutputFunctionCall(typoutput, out_val);
@@ -206,6 +201,6 @@ void datum_to_bson(const char* field_name, mongo::BSONObjBuilder& builder,
         } // switch
     } // if not null
 
-    PGBSON_LOG << "END datum_to_bson, field_name=" << field_name << PGBSON_FLUSH_LOG;
+    PGBSON_LOG << "END datum_to_bson, field_name=" << field_name << PGBSON_ENDL;
 
 }

@@ -31,19 +31,14 @@ extern "C" {
     #define PGBSON_LOG std::cout
     #define PGBSON_FLUSH_LOG std::endl
 #else
-    struct null_stream
-    {
-        static null_stream instance;
-    };
+    // dummy object with << operator for all types
+    struct null_stream {};
 
     template<typename T>
-    null_stream& operator << (null_stream& l, const T&)
-    {
-        return l;
-    }
+    const null_stream& operator << (const null_stream& l, const T&) { return l; }
 
-    #define PGBSON_LOG null_stream::instance
-    #define PGBSON_FLUSH_LOG 0
+    #define PGBSON_LOG null_stream()
+    #define PGBSON_ENDL 0
 
 #endif
 
