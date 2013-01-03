@@ -63,7 +63,7 @@ PG_FUNCTION_INFO_V1(row_to_bson);
 Datum
 row_to_bson(PG_FUNCTION_ARGS)
 {
-    std::cout << "row_to_bson" << std::endl;
+    PGBSON_LOG << "row_to_bson" << PGBSON_ENDL;
     Datum record = PG_GETARG_DATUM(0);
     mongo::BSONObjBuilder builder;
 

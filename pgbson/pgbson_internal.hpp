@@ -29,7 +29,7 @@ extern "C" {
 // logging (to stdout)
 #ifdef PGBSON_LOGGING
     #define PGBSON_LOG std::cout
-    #define PGBSON_FLUSH_LOG std::endl
+    #define PGBSON_ENDL std::endl
 #else
     // dummy object with << operator for all types
     struct null_stream {};
@@ -47,6 +47,12 @@ Datum return_string(const std::string& s);
 Datum return_cstring(const std::string& s);
 Datum return_bson(const mongo::BSONObj& b);
 
+inline mongo::BSONObj datum_get_bson(Datum* val)
+{
+    bytea* data = DatumGetBson(val);
+    return mongo::BSONObj(VARDATA_ANY(data));
+}
+
 std::string get_typename(Oid typid);
 
 // bson object inspection
@@ -63,10 +69,13 @@ Datum bson_get(PG_FUNCTION_ARGS)
     mongo::BSONObj object(VARDATA_ANY(arg));
 
     text* arg2 = PG_GETARG_TEXT_P(1);
+    std::string field_name(VARDATA(arg2),  VARSIZE(arg2)-VARHDRSZ);
 
-    mongo::BSONElement e = object.getFieldDotted(VARDATA(arg2));
+    PGBSON_LOG << "bson_get: field: " << field_name << PGBSON_ENDL;
+    mongo::BSONElement e = object.getFieldDotted(field_name);
     if (e.eoo())
     {
+        PGBSON_LOG << "bson_get: no such field" << PGBSON_ENDL;
         // no such element
         PG_RETURN_NULL();
     }
@@ -84,8 +93,9 @@ convert_element<std::string>(PG_FUNCTION_ARGS, const mongo::BSONElement e)
     {
         return return_string(e.String());
     }
-    catch(...)
+    catch(const std::exception& e)
     {
+        PGBSON_LOG << "convert_element<std::string>: error converting:" << e.what() << PGBSON_ENDL;
         PG_RETURN_NULL();
     }
 }

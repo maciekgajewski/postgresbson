@@ -168,8 +168,8 @@ void datum_to_bson(const char* field_name, mongo::BSONObjBuilder& builder,
                 PGBSON_LOG << "datum_to_bson - type=" << get_typename(typid) << PGBSON_ENDL;
                 if (get_typename(typid) == "bson")
                 {
-                    bytea* data = DatumGetByteaPP(val);
-                    mongo::BSONObj obj(VARDATA(data));
+                    bytea* data = DatumGetBson(val);
+                    mongo::BSONObj obj(VARDATA_ANY(data));
                     builder.append(field_name, obj);
                 }
                 else
