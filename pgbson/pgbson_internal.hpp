@@ -142,9 +142,15 @@ Datum convert_element<std::string>(PG_FUNCTION_ARGS, const mongo::BSONElement e)
             ss << std::boolalpha << e.boolean();
             break;
 
-//        case mongo::Date:
-//            // TODO
-//            break;
+        case mongo::Date:
+            return return_string(
+                to_iso_extended_string(
+                    boost::posix_time::ptime(
+                        boost::gregorian::date(1970, 1, 1),
+                        boost::posix_time::milliseconds(e.date().millis)
+                        )
+                    )
+                );
 
         case mongo::RegEx:
             ss << e.regex();
@@ -153,10 +159,6 @@ Datum convert_element<std::string>(PG_FUNCTION_ARGS, const mongo::BSONElement e)
         case mongo::NumberInt:
             ss << e._numberInt();
             break;
-
-//        case mongo::Timestamp:
-//            // TODO
-//            break;
 
         case mongo::NumberLong:
             ss << e._numberLong();
