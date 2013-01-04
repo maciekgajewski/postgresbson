@@ -61,6 +61,15 @@ template<typename FieldType>
 static
 Datum convert_element(PG_FUNCTION_ARGS, const mongo::BSONElement e);
 
+// exception usedit indicate conversion error
+struct convertion_error
+{
+    const char* target_type;
+    convertion_error(const char* tt) : target_type(tt) { }
+};
+
+const char* bson_type_name(const mongo::BSONElement& e);
+
 template<typename FieldType>
 static
 Datum bson_get(PG_FUNCTION_ARGS)
@@ -81,23 +90,83 @@ Datum bson_get(PG_FUNCTION_ARGS)
     }
     else
     {
-        return convert_element<FieldType>(fcinfo, e);
+        try
+        {
+            return convert_element<FieldType>(fcinfo, e);
+        }
+        catch(const convertion_error& ex)
+        {
+            ereport(
+                ERROR,
+                    (
+                    errcode(ERRCODE_INTERNAL_ERROR),
+                    errmsg("Field %s is of type %s and can not be converted to %s",
+                        field_name.c_str(), bson_type_name(e), ex.target_type)
+                    )
+                );
+        }
+        catch(const std::exception& ex)
+        {
+            ereport(
+                ERROR,
+                    (
+                    errcode(ERRCODE_INTERNAL_ERROR),
+                    errmsg("Error converting filed %s of type %s: %s",
+                        field_name.c_str(), bson_type_name(e), ex.what())
+                    )
+                );
+        }
     }
 }
 
 template<>
-Datum
-convert_element<std::string>(PG_FUNCTION_ARGS, const mongo::BSONElement e)
+Datum convert_element<std::string>(PG_FUNCTION_ARGS, const mongo::BSONElement e)
 {
-    try
+    std::stringstream ss;
+    switch(e.type())
     {
-        return return_string(e.String());
+        case mongo::String:
+        case mongo::DBRef:
+        case mongo::Symbol:
+            return return_string(e.valuestr());
+
+        case mongo::NumberDouble:
+            ss << e._numberDouble();
+            break;
+
+        case mongo::jstOID:
+            ss << e.__oid().str();
+            break;
+
+        case mongo::Bool:
+            ss << std::boolalpha << e.boolean();
+            break;
+
+//        case mongo::Date:
+//            // TODO
+//            break;
+
+        case mongo::RegEx:
+            ss << e.regex();
+            break;
+
+        case mongo::NumberInt:
+            ss << e._numberInt();
+            break;
+
+//        case mongo::Timestamp:
+//            // TODO
+//            break;
+
+        case mongo::NumberLong:
+            ss << e._numberLong();
+            break;
+
+        default:
+            throw convertion_error("text");
+
     }
-    catch(const std::exception& e)
-    {
-        PGBSON_LOG << "convert_element<std::string>: error converting:" << e.what() << PGBSON_ENDL;
-        PG_RETURN_NULL();
-    }
+    return return_string(ss.str());
 }
 
 // bson manipulation/creation

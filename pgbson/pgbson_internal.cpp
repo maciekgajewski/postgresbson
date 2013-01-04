@@ -204,3 +204,9 @@ void datum_to_bson(const char* field_name, mongo::BSONObjBuilder& builder,
     PGBSON_LOG << "END datum_to_bson, field_name=" << field_name << PGBSON_ENDL;
 
 }
+
+const char* bson_type_name(const mongo::BSONElement& e)
+{
+    return mongo::typeName(e.type());
+}
+

@@ -49,9 +49,9 @@ bson_in(PG_FUNCTION_ARGS)
     }
 }
 
-PG_FUNCTION_INFO_V1(bson_get_string);
+PG_FUNCTION_INFO_V1(bson_get_text);
 Datum
-bson_get_string(PG_FUNCTION_ARGS)
+bson_get_text(PG_FUNCTION_ARGS)
 {
     return bson_get<std::string>(fcinfo);
 }

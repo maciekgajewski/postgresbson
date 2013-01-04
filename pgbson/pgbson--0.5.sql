@@ -18,7 +18,7 @@ CREATE TYPE bson (
 
 -- object inspection
 
-CREATE FUNCTION bson_get_string(bson, text) RETURNS text
+CREATE FUNCTION bson_get_text(bson, text) RETURNS text
 AS 'MODULE_PATHNAME'
 LANGUAGE C STRICT IMMUTABLE;
 

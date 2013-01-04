@@ -40,11 +40,11 @@ VALUES
 
 INSERT INTO test_resulsts(name, expected, got)
 SELECT 'bson_get_string on bson from json',
-    'from json', bson_get_string(data, 'string_field') FROM data_table WHERE id = 1;
+    'from json', bson_get_text(data, 'string_field') FROM data_table WHERE id = 1;
 
 INSERT INTO test_resulsts(name, expected, got)
 SELECT 'bson_get_string on bson from row',
-    'from row', bson_get_string(data, 'string_field')  FROM data_table WHERE id = 2;
+    'from row', bson_get_text(data, 'string_field')  FROM data_table WHERE id = 2;
 
 
 
