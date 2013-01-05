@@ -59,9 +59,22 @@ INSERT INTO results_table(name, expected, got)
 SELECT 'bson_get_as_bson on nested object',
     '{"ns":"boo"}'::bson::text, bson_get_as_bson(data, 'nested')::text  FROM data_table WHERE id = 1;
 
+\qecho * Operators
 
+INSERT INTO results_table(name, expected, got)
+SELECT 'equality on identical objects', true, '{"a":3, "b":"boo"}'::bson = '{ "a" : 3, "b" : "boo" }'::bson;
 
+INSERT INTO results_table(name, expected, got)
+SELECT 'equality on different objects', false, '{"a":3, "b":"boo"}'::bson = '{ "a" : 7, "X":{"f":"ghj"}}'::bson;
 
+INSERT INTO results_table(name, expected, got)
+SELECT 'equality on reordered fields', false, '{"a":3, "b":"boo"}'::bson = '{"b":"boo", "a":3}'::bson;
+
+INSERT INTO results_table(name, expected, got)
+SELECT 'inequality on identical objects', false, '{"a":3, "b":"boo"}'::bson <> '{ "a" : 3, "b" : "boo" }'::bson;
+
+INSERT INTO results_table(name, expected, got)
+SELECT 'inequality on different objects', true, '{"a":3, "b":"boo"}'::bson <> '{ "a" : 7, "X":{"f":"ghj"}}'::bson;
 
 -- this must be at the end
 \qecho * test results, check for failures!

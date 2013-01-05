@@ -1,4 +1,6 @@
--- type definition
+------------------------------------
+-- type definition and i/o functions
+------------------------------------
 
 CREATE TYPE bson;
 
@@ -17,8 +19,35 @@ CREATE TYPE bson (
     storage = main
 );
 
--- other
+------------
+-- operators
+------------
 
+CREATE FUNCTION bson_equal(bson, bson) RETURNS BOOL
+AS 'MODULE_PATHNAME'
+LANGUAGE C STRICT IMMUTABLE;
+
+CREATE FUNCTION bson_not_equal(bson, bson) RETURNS BOOL AS $$
+    SELECT NOT(bson_equal($1, $2));
+$$ LANGUAGE SQL;
+
+CREATE OPERATOR = (
+    LEFTARG = bson,
+    RIGHTARG = bson,
+    PROCEDURE = bson_equal,
+    NEGATOR = <>
+);
+
+CREATE OPERATOR <> (
+    LEFTARG = bson,
+    RIGHTARG = bson,
+    PROCEDURE = bson_not_equal,
+    NEGATOR = =
+);
+
+------------------
+-- other functions
+------------------
 CREATE FUNCTION pgbson_version() RETURNS text
 AS 'MODULE_PATHNAME'
 LANGUAGE C STRICT IMMUTABLE;
