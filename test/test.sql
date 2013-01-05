@@ -7,11 +7,16 @@ CREATE TEMPORARY TABLE data_table (
     data BSON
 );
 
-CREATE TEMPORARY TABLE test_resulsts (
+CREATE TEMPORARY TABLE results_table (
     name TEXT NOT NULL,
     expected TEXT,
     got TEXT
 );
+
+\qecho * testing extension version
+INSERT INTO results_table(name, got, expected)
+VALUES ('pgbson version', pgbson_version(), '0.5');
+
 
 \qecho * json format input
 INSERT INTO data_table(id, data)
@@ -38,11 +43,11 @@ VALUES
 \qecho * Object inspection
 
 
-INSERT INTO test_resulsts(name, expected, got)
+INSERT INTO results_table(name, expected, got)
 SELECT 'bson_get_string on bson from json',
     'from json', bson_get_text(data, 'string_field') FROM data_table WHERE id = 1;
 
-INSERT INTO test_resulsts(name, expected, got)
+INSERT INTO results_table(name, expected, got)
 SELECT 'bson_get_string on bson from row',
     'from row', bson_get_text(data, 'string_field')  FROM data_table WHERE id = 2;
 
@@ -51,5 +56,5 @@ SELECT 'bson_get_string on bson from row',
 
 
 -- this must be at the end
-\qecho * Test results, check for failures
-SELECT *, expected = got AS passed FROM test_resulsts;
+\qecho * test results, check for failures!
+SELECT *, expected = got AS passed FROM results_table;

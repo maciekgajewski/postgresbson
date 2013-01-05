@@ -9,11 +9,11 @@ extern "C" {
 PG_MODULE_MAGIC;
 #endif
 
-// dummy test function
-PG_FUNCTION_INFO_V1(pgbson_test);
-Datum pgbson_test(PG_FUNCTION_ARGS)
+// package version
+PG_FUNCTION_INFO_V1(pgbson_version);
+Datum pgbson_version(PG_FUNCTION_ARGS)
 {
-    return return_string("OK");
+    return return_string("0.5");
 }
 
 // bson output - to json
