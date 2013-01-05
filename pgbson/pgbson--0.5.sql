@@ -31,19 +31,42 @@ CREATE FUNCTION bson_not_equal(bson, bson) RETURNS BOOL AS $$
     SELECT NOT(bson_equal($1, $2));
 $$ LANGUAGE SQL;
 
+CREATE FUNCTION bson_binary_equal(bson, bson) RETURNS BOOL
+AS 'MODULE_PATHNAME'
+LANGUAGE C STRICT IMMUTABLE;
+
+CREATE FUNCTION bson_binary_not_equal(bson, bson) RETURNS BOOL AS $$
+    SELECT NOT(bson_equal($1, $2));
+$$ LANGUAGE SQL;
+
+
 CREATE OPERATOR = (
     LEFTARG = bson,
     RIGHTARG = bson,
-    PROCEDURE = bson_equal,
+    PROCEDURE = bson_binary_equal,
     NEGATOR = <>
 );
 
 CREATE OPERATOR <> (
     LEFTARG = bson,
     RIGHTARG = bson,
-    PROCEDURE = bson_not_equal,
+    PROCEDURE = bson_binary_not_equal,
     NEGATOR = =
 );
+
+---------------------
+-- hash index support
+---------------------
+
+CREATE FUNCTION bson_hash(bson) RETURNS INT4
+AS 'MODULE_PATHNAME'
+LANGUAGE C STRICT IMMUTABLE;
+
+CREATE OPERATOR CLASS bson_hash_ops
+    DEFAULT FOR TYPE bson USING hash AS
+        OPERATOR 1 = (bson, bson) ,
+        FUNCTION 1 bson_hash(bson);
+
 
 ------------------
 -- other functions

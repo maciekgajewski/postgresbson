@@ -113,4 +113,28 @@ bson_equal(PG_FUNCTION_ARGS)
     PG_RETURN_BOOL(object0 == object1);
 }
 
+// binsry equality
+PG_FUNCTION_INFO_V1(bson_binary_equal);
+Datum
+bson_binary_equal(PG_FUNCTION_ARGS)
+{
+    bytea* arg0 = GETARG_BSON(0);
+    bytea* arg1 = GETARG_BSON(1);
+    mongo::BSONObj object0(VARDATA_ANY(arg0));
+    mongo::BSONObj object1(VARDATA_ANY(arg1));
+
+    PG_RETURN_BOOL(object0.binaryEqual(object1));
+}
+
+// hash
+PG_FUNCTION_INFO_V1(bson_hash);
+Datum
+bson_hash(PG_FUNCTION_ARGS)
+{
+    bytea* arg0 = GETARG_BSON(0);
+    mongo::BSONObj object0(VARDATA_ANY(arg0));
+
+    PG_RETURN_INT32(object0.hash());
+}
+
 }

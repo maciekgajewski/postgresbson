@@ -76,6 +76,12 @@ SELECT 'inequality on identical objects', false, '{"a":3, "b":"boo"}'::bson <> '
 INSERT INTO results_table(name, expected, got)
 SELECT 'inequality on different objects', true, '{"a":3, "b":"boo"}'::bson <> '{ "a" : 7, "X":{"f":"ghj"}}'::bson;
 
+INSERT INTO results_table(name, expected, got)
+SELECT 'binary inequality of logically equal objects', false, row_to_bson(row(3::float)) <> row_to_bson(row(3::integer));
+
+INSERT INTO results_table(name, expected, got)
+SELECT 'logical equality of binary inequal objects', true, bson_equal(row_to_bson(row(3::float)), row_to_bson(row(3::integer)));
+
 -- this must be at the end
 \qecho * test results, check for failures!
 SELECT *, expected = got AS passed FROM results_table;
