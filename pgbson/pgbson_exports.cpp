@@ -56,6 +56,34 @@ bson_get_text(PG_FUNCTION_ARGS)
     return bson_get<std::string>(fcinfo);
 }
 
+PG_FUNCTION_INFO_V1(bson_get_as_bson);
+Datum
+bson_get_as_bson(PG_FUNCTION_ARGS)
+{
+    bytea* arg = GETARG_BSON(0);
+    mongo::BSONObj object(VARDATA_ANY(arg));
+
+    text* arg2 = PG_GETARG_TEXT_P(1);
+    std::string field_name(VARDATA(arg2),  VARSIZE(arg2)-VARHDRSZ);
+
+    mongo::BSONElement el = object.getFieldDotted(field_name);
+    if (el.eoo())
+    {
+        PG_RETURN_NULL();
+    }
+    else if (el.type() == mongo::Object)
+    {
+        return return_bson(el.embeddedObject());
+    }
+    else
+    {
+        // build object with sinle, anonymous field
+        mongo::BSONObjBuilder builder;
+        builder.appendAs(el, "");
+        return return_bson(builder.obj());
+    }
+}
+
 // Converts composite type to BSON
 //
 // Code of this function is based on row_to_json

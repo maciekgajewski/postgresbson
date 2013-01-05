@@ -51,6 +51,14 @@ INSERT INTO results_table(name, expected, got)
 SELECT 'bson_get_string on bson from row',
     'from row', bson_get_text(data, 'string_field')  FROM data_table WHERE id = 2;
 
+INSERT INTO results_table(name, expected, got)
+SELECT 'bson_get_as_bson on string',
+    '{"":"from json"}'::bson::text, bson_get_as_bson(data, 'string_field')::text  FROM data_table WHERE id = 1;
+
+INSERT INTO results_table(name, expected, got)
+SELECT 'bson_get_as_bson on nested object',
+    '{"ns":"boo"}'::bson::text, bson_get_as_bson(data, 'nested')::text  FROM data_table WHERE id = 1;
+
 
 
 
