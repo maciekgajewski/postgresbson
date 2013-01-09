@@ -1,0 +1,12 @@
+Requires:
+cmake-2.8
+pg_config in path
+C++ compiler
+
+git clone https://github.com/maciekgajewski/postgresbson.git
+mkdir postgresbson-build
+cd postgresbson-build
+cmake ../posdtgresbson
+make
+make install # may require sudo
+make test
