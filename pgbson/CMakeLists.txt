@@ -1,6 +1,7 @@
 project(pgbson)
 cmake_minimum_required(VERSION 2.8)
 find_package( Boost 1.36.0 COMPONENTS date_time thread filesystem)
+include_directories(${Boost_INCLUDE_DIRS})
 set(CMAKE_BUILD_TYPE Debug)
 add_definitions(-DPGBSON_LOGGING)
 
