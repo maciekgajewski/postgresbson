@@ -128,13 +128,26 @@ LANGUAGE C STRICT IMMUTABLE;
 
 CREATE OPERATOR CLASS bson_hash_ops
     DEFAULT FOR TYPE bson USING hash AS
-        OPERATOR 1 = (bson, bson) ,
+        OPERATOR 1 == (bson, bson) ,
         FUNCTION 1 bson_hash(bson);
 
+-----------------------
+-- b-tree index support
+-----------------------
+
+CREATE OPERATOR CLASS bson_btree_ops
+    DEFAULT FOR TYPE bson USING btree AS
+        OPERATOR 1 < (bson, bson),
+        OPERATOR 2 <= (bson, bson),
+        OPERATOR 3 = (bson, bson),
+        OPERATOR 4 >= (bson, bson),
+        OPERATOR 5 > (bson, bson),
+        FUNCTION 1 bson_compare(bson, bson);
 
 ------------------
 -- other functions
 ------------------
+
 CREATE FUNCTION pgbson_version() RETURNS text
 AS 'MODULE_PATHNAME'
 LANGUAGE C STRICT IMMUTABLE;

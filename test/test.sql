@@ -126,6 +126,12 @@ SELECT 'gte-eq', true, '{"a":3}'::bson >= '{"a":3}'::bson;
 INSERT INTO results_table(name, expected, got)
 SELECT 'gte-gt', true, '{"a":3}'::bson >= '{"a":2}'::bson;
 
+\qecho * hash index creation
+CREATE INDEX test_hash_idx ON data_table USING hash (bson_get_as_bson(data, '_id'));
+
+\qecho * btree index creation
+CREATE INDEX test_btree_idx ON data_table USING btree (bson_get_as_bson(data, '_id'));
+
 -- this must be at the end
 \qecho * test results, check for failures!
 SELECT *, expected = got AS passed FROM results_table;
