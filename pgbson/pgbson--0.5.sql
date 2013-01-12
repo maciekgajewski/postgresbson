@@ -23,35 +23,99 @@ CREATE TYPE bson (
 -- operators
 ------------
 
-CREATE FUNCTION bson_equal(bson, bson) RETURNS BOOL
+-- logical comparison
+CREATE FUNCTION bson_compare(bson, bson) RETURNS INT4
 AS 'MODULE_PATHNAME'
 LANGUAGE C STRICT IMMUTABLE;
+
+CREATE FUNCTION bson_equal(bson, bson) RETURNS BOOL AS $$
+    SELECT bson_compare($1, $2) = 0;
+$$ LANGUAGE SQL;
 
 CREATE FUNCTION bson_not_equal(bson, bson) RETURNS BOOL AS $$
-    SELECT NOT(bson_equal($1, $2));
+    SELECT bson_compare($1, $2) <> 0;
 $$ LANGUAGE SQL;
 
-CREATE FUNCTION bson_binary_equal(bson, bson) RETURNS BOOL
-AS 'MODULE_PATHNAME'
-LANGUAGE C STRICT IMMUTABLE;
-
-CREATE FUNCTION bson_binary_not_equal(bson, bson) RETURNS BOOL AS $$
-    SELECT NOT(bson_equal($1, $2));
+CREATE FUNCTION bson_lt(bson, bson) RETURNS BOOL AS $$
+    SELECT bson_compare($1, $2) < 0;
 $$ LANGUAGE SQL;
 
+CREATE FUNCTION bson_lte(bson, bson) RETURNS BOOL AS $$
+    SELECT bson_compare($1, $2) <= 0;
+$$ LANGUAGE SQL;
+
+CREATE FUNCTION bson_gt(bson, bson) RETURNS BOOL AS $$
+    SELECT bson_compare($1, $2) > 0;
+$$ LANGUAGE SQL;
+
+CREATE FUNCTION bson_gte(bson, bson) RETURNS BOOL AS $$
+    SELECT bson_compare($1, $2) >= 0;
+$$ LANGUAGE SQL;
 
 CREATE OPERATOR = (
     LEFTARG = bson,
     RIGHTARG = bson,
-    PROCEDURE = bson_binary_equal,
+    PROCEDURE = bson_equal,
     NEGATOR = <>
 );
 
 CREATE OPERATOR <> (
     LEFTARG = bson,
     RIGHTARG = bson,
-    PROCEDURE = bson_binary_not_equal,
+    PROCEDURE = bson_not_equal,
     NEGATOR = =
+);
+
+CREATE OPERATOR < (
+    LEFTARG = bson,
+    RIGHTARG = bson,
+    PROCEDURE = bson_lt,
+    NEGATOR = >=
+);
+
+CREATE OPERATOR <= (
+    LEFTARG = bson,
+    RIGHTARG = bson,
+    PROCEDURE = bson_lte,
+    NEGATOR = >
+);
+
+CREATE OPERATOR > (
+    LEFTARG = bson,
+    RIGHTARG = bson,
+    PROCEDURE = bson_gt,
+    NEGATOR = <=
+);
+
+CREATE OPERATOR >= (
+    LEFTARG = bson,
+    RIGHTARG = bson,
+    PROCEDURE = bson_gte,
+    NEGATOR = <
+);
+
+-- binary equality
+CREATE FUNCTION bson_binary_equal(bson, bson) RETURNS BOOL
+AS 'MODULE_PATHNAME'
+LANGUAGE C STRICT IMMUTABLE;
+
+CREATE FUNCTION bson_binary_not_equal(bson, bson) RETURNS BOOL AS $$
+    SELECT NOT(bson_binary_equal($1, $2));
+$$ LANGUAGE SQL;
+
+
+CREATE OPERATOR == (
+    LEFTARG = bson,
+    RIGHTARG = bson,
+    PROCEDURE = bson_binary_equal,
+    NEGATOR = <<>>
+);
+
+CREATE OPERATOR <<>> (
+    LEFTARG = bson,
+    RIGHTARG = bson,
+    PROCEDURE = bson_binary_not_equal,
+    NEGATOR = ==
 );
 
 ---------------------

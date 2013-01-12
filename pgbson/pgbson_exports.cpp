@@ -111,17 +111,17 @@ row_to_bson(PG_FUNCTION_ARGS)
     return return_bson(builder.obj());
 }
 
-// equality operator
-PG_FUNCTION_INFO_V1(bson_equal);
+// logical comparison
+PG_FUNCTION_INFO_V1(bson_compare);
 Datum
-bson_equal(PG_FUNCTION_ARGS)
+bson_compare(PG_FUNCTION_ARGS)
 {
     bytea* arg0 = GETARG_BSON(0);
     bytea* arg1 = GETARG_BSON(1);
     mongo::BSONObj object0(VARDATA_ANY(arg0));
     mongo::BSONObj object1(VARDATA_ANY(arg1));
 
-    PG_RETURN_BOOL(object0 == object1);
+    PG_RETURN_INT32(object0.woCompare(object1));
 }
 
 // binsry equality

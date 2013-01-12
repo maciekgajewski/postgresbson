@@ -77,10 +77,54 @@ INSERT INTO results_table(name, expected, got)
 SELECT 'inequality on different objects', true, '{"a":3, "b":"boo"}'::bson <> '{ "a" : 7, "X":{"f":"ghj"}}'::bson;
 
 INSERT INTO results_table(name, expected, got)
-SELECT 'binary inequality of logically equal objects', false, row_to_bson(row(3::float)) <> row_to_bson(row(3::integer));
+SELECT '==', false, row_to_bson(row(3::float)) == row_to_bson(row(3::integer));
 
 INSERT INTO results_table(name, expected, got)
-SELECT 'logical equality of binary inequal objects', true, bson_equal(row_to_bson(row(3::float)), row_to_bson(row(3::integer)));
+SELECT '<<>>', true, row_to_bson(row(3::float)) <<>> row_to_bson(row(3::integer));
+
+
+
+INSERT INTO results_table(name, expected, got)
+SELECT 'lt-lt', true, '{"a":3}'::bson < '{"a":4}'::bson;
+
+INSERT INTO results_table(name, expected, got)
+SELECT 'lt-eq', false, '{"a":3}'::bson < '{"a":3}'::bson;
+
+INSERT INTO results_table(name, expected, got)
+SELECT 'lt-gt', false, '{"a":3}'::bson < '{"a":2}'::bson;
+
+
+
+INSERT INTO results_table(name, expected, got)
+SELECT 'lte-lt', true, '{"a":3}'::bson <= '{"a":4}'::bson;
+
+INSERT INTO results_table(name, expected, got)
+SELECT 'lte-eq', true, '{"a":3}'::bson <= '{"a":3}'::bson;
+
+INSERT INTO results_table(name, expected, got)
+SELECT 'lte-gt', false, '{"a":3}'::bson <= '{"a":2}'::bson;
+
+
+
+INSERT INTO results_table(name, expected, got)
+SELECT 'gt-lt', false, '{"a":3}'::bson > '{"a":4}'::bson;
+
+INSERT INTO results_table(name, expected, got)
+SELECT 'gt-eq', false, '{"a":3}'::bson > '{"a":3}'::bson;
+
+INSERT INTO results_table(name, expected, got)
+SELECT 'gt-gt', true, '{"a":3}'::bson > '{"a":2}'::bson;
+
+
+
+INSERT INTO results_table(name, expected, got)
+SELECT 'gte-lt', false, '{"a":3}'::bson >= '{"a":4}'::bson;
+
+INSERT INTO results_table(name, expected, got)
+SELECT 'gte-eq', true, '{"a":3}'::bson >= '{"a":3}'::bson;
+
+INSERT INTO results_table(name, expected, got)
+SELECT 'gte-gt', true, '{"a":3}'::bson >= '{"a":2}'::bson;
 
 -- this must be at the end
 \qecho * test results, check for failures!
