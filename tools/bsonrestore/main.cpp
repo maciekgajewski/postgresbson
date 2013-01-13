@@ -2,6 +2,7 @@
 #include <boost/lexical_cast.hpp>
 #include <boost/shared_ptr.hpp>
 #include <boost/shared_array.hpp>
+#include <boost/cstdint.hpp>
 
 #include <iostream>
 #include <fstream>
@@ -58,10 +59,6 @@ static void bson_restore(
     }
 
 
-    // preare buffer
-    static const std::size_t BUFSIZE = 16*1024*1024;
-    boost::shared_array<char> buffer(new char[BUFSIZE]);
-
     // open file
     std::ifstream file;
     file.exceptions(std::ifstream::failbit | std::ifstream::badbit);
@@ -86,6 +83,77 @@ static void bson_restore(
         ::PQclear);
 
     if (::PQresultStatus(execRes.get()) != PGRES_COPY_IN)
+    {
+        throw_postgres_error(connection.get());
+    }
+
+    // send header
+    const static std::string header =
+        "PGCOPY\n\377\r\n\0"    // signature
+        "\0\0\0\0"              // flags
+        "\0\0\0\0";             // extension
+
+    int res = ::PQputCopyData(connection.get(),
+                  header.c_str(),
+                  header.length());
+    if (res < 0) throw_postgres_error(connection.get());
+
+    // preare buffer
+    static const std::size_t BUFSIZE = 16*1024*1024;
+    boost::shared_array<char> buffer(new char[BUFSIZE]);
+
+    // let's partition the buffer into fileds
+    char* no_of_fields = buffer.get();
+    char* field_size = buffer.get()+2;
+    char* bson_size = buffer.get()+6;
+    char* remainder = buffer.get()+10;
+
+    // no-of-filed is always 1 (big-endian)
+    no_of_fields[0] = 0;
+    no_of_fields[1] = 1;
+
+    // read file, send tuples
+    while(!file.eof())
+    {
+        // read and verify header
+        file.read(bson_size, 4);
+
+        // convert from little endian
+        boost::uint8_t* bson_size_as_uchar = reinterpret_cast<boost::uint8_t*>(bson_size);
+        boost::uint32_t bson_size_i =
+            (bson_size_as_uchar[0]) + (bson_size_as_uchar[1] << 8)+
+            (bson_size_as_uchar[2] << 16) + (bson_size_as_uchar[3] << 24);
+
+        if (bson_size_i > BUFSIZE-4)
+        {
+            throw std::runtime_error("BSON object too big or file corrupted");
+        }
+        //read the rest
+        file.read(remainder, bson_size_i-4);
+
+        // set record size (it's just and inverse bson_size)
+        field_size[0] = bson_size[3];
+        field_size[1] = bson_size[2];
+        field_size[2] = bson_size[1];
+        field_size[3] = bson_size[0];
+
+        // send the tuple
+        int res = ::PQputCopyData(connection.get(),
+                  buffer.get(),
+                  bson_size_i + 4
+                  );
+        if (res < 0) throw_postgres_error(connection.get());
+    }
+
+    // finalize copy operation and check the status
+    res =  ::PQputCopyEnd(connection.get(), NULL);
+    if (res < 0) throw_postgres_error(connection.get());
+
+    boost::shared_ptr<PGresult> copyResult(
+        ::PQgetResult(connection.get()),
+        ::PQclear);
+
+    if (::PQresultStatus(copyResult.get()) != PGRES_COMMAND_OK)
     {
         throw_postgres_error(connection.get());
     }

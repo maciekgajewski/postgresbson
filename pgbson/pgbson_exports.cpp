@@ -60,6 +60,35 @@ bson_in(PG_FUNCTION_ARGS)
     }
 }
 
+// binary i/o
+PG_FUNCTION_INFO_V1(bson_recv);
+Datum
+bson_recv(PG_FUNCTION_ARGS)
+{
+    StringInfo buf = (StringInfo) PG_GETARG_POINTER(0);
+    try
+    {
+        mongo::BSONObj object(buf->data);
+        // copy to palloc-ed buffer
+        return return_bson(object);
+    }
+    catch(...)
+    {
+        ereport(
+            ERROR,
+            (errcode(ERRCODE_INVALID_TEXT_REPRESENTATION), errmsg("invalid binary input for BSON"))
+        );
+    }
+}
+
+PG_FUNCTION_INFO_V1(bson_send);
+Datum
+bson_send(PG_FUNCTION_ARGS)
+{
+    bytea* arg = GETARG_BSON(0);
+    PG_RETURN_BYTEA_P(arg);
+}
+
 PG_FUNCTION_INFO_V1(bson_get_text);
 Datum
 bson_get_text(PG_FUNCTION_ARGS)

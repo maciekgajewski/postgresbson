@@ -12,9 +12,19 @@ CREATE FUNCTION bson_out(bson) RETURNS cstring
 AS 'MODULE_PATHNAME'
 LANGUAGE C STRICT IMMUTABLE;
 
+CREATE FUNCTION bson_send(bson) RETURNS bytea
+AS 'MODULE_PATHNAME'
+LANGUAGE C STRICT IMMUTABLE;
+
+CREATE FUNCTION bson_recv(internal) RETURNS bson
+AS 'MODULE_PATHNAME'
+LANGUAGE C STRICT IMMUTABLE;
+
 CREATE TYPE bson (
     input = bson_in,
     output = bson_out,
+    send = bson_send,
+    receive = bson_recv,
     alignment = int4,
     storage = main
 );
