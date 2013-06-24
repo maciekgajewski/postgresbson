@@ -26,7 +26,7 @@ set(PG_EXTENSIONDIR "${PG_SHAREDIR}/extension")
 # building
 
 include_directories( ${PG_INCLUDEDIR} )
-set(MONGO_SRC "mongo-cxx-driver-v2.2/src/")
+set(MONGO_SRC "mongo-cxx-driver-v2.4/src/")
 include_directories(BEFORE ${MONGO_SRC} ${MONGO_SRC}/mongo)
 
 set(CMAKE_CXX_FLAGS -fPIC)
@@ -36,9 +36,22 @@ add_library(pgbson SHARED
     pgbson_internal.hpp pgbson_internal.cpp
 
     # mongo sources (list copied from ${MONGO_SRC}/SConscript.client)
+    ${MONGO_SRC}/mongo/base/configuration_variable_manager.cpp
+    ${MONGO_SRC}/mongo/base/error_codes.cpp
+    ${MONGO_SRC}/mongo/base/global_initializer.cpp
+    ${MONGO_SRC}/mongo/base/global_initializer_registerer.cpp
+    ${MONGO_SRC}/mongo/base/init.cpp
+    ${MONGO_SRC}/mongo/base/initializer.cpp
+    ${MONGO_SRC}/mongo/base/initializer_context.cpp
+    ${MONGO_SRC}/mongo/base/initializer_dependency_graph.cpp
+    ${MONGO_SRC}/mongo/base/make_string_vector.cpp
+    ${MONGO_SRC}/mongo/base/parse_number.cpp
+    ${MONGO_SRC}/mongo/base/status.cpp
+    ${MONGO_SRC}/mongo/base/string_data.cpp
+    ${MONGO_SRC}/mongo/bson/bson_validate.cpp
     ${MONGO_SRC}/mongo/bson/oid.cpp
+    ${MONGO_SRC}/mongo/bson/util/bson_extract.cpp
     ${MONGO_SRC}/mongo/buildinfo.cpp
-    ${MONGO_SRC}/mongo/client/authentication_table.cpp
     ${MONGO_SRC}/mongo/client/clientAndShell.cpp
     ${MONGO_SRC}/mongo/client/clientOnly.cpp
     ${MONGO_SRC}/mongo/client/connection_factory.cpp
@@ -46,17 +59,17 @@ add_library(pgbson SHARED
     ${MONGO_SRC}/mongo/client/dbclient.cpp
     ${MONGO_SRC}/mongo/client/dbclient_rs.cpp
     ${MONGO_SRC}/mongo/client/dbclientcursor.cpp
-    ${MONGO_SRC}/mongo/client/distlock.cpp
     ${MONGO_SRC}/mongo/client/gridfs.cpp
     ${MONGO_SRC}/mongo/client/model.cpp
+    ${MONGO_SRC}/mongo/client/sasl_client_authenticate.cpp
     ${MONGO_SRC}/mongo/client/syncclusterconnection.cpp
     ${MONGO_SRC}/mongo/db/jsobj.cpp
     ${MONGO_SRC}/mongo/db/json.cpp
     ${MONGO_SRC}/mongo/db/lasterror.cpp
     ${MONGO_SRC}/mongo/db/namespace.cpp
-    ${MONGO_SRC}/mongo/db/nonce.cpp
     ${MONGO_SRC}/mongo/db/dbmessage.cpp
     ${MONGO_SRC}/mongo/pch.cpp
+    ${MONGO_SRC}/mongo/platform/random.cpp
     ${MONGO_SRC}/mongo/util/assert_util.cpp
     ${MONGO_SRC}/mongo/util/background.cpp
     ${MONGO_SRC}/mongo/util/base64.cpp
@@ -68,7 +81,11 @@ add_library(pgbson SHARED
     ${MONGO_SRC}/mongo/util/concurrency/mutexdebugger.cpp
     ${MONGO_SRC}/mongo/util/debug_util.cpp
     ${MONGO_SRC}/mongo/util/stacktrace.cpp
+    ${MONGO_SRC}/mongo/util/file.cpp
     ${MONGO_SRC}/mongo/util/file_allocator.cpp
+    ${MONGO_SRC}/mongo/util/fail_point.cpp
+    ${MONGO_SRC}/mongo/util/fail_point_registry.cpp
+    ${MONGO_SRC}/mongo/util/fail_point_service.cpp
     ${MONGO_SRC}/mongo/util/histogram.cpp
     ${MONGO_SRC}/mongo/util/intrusive_counter.cpp
     ${MONGO_SRC}/mongo/util/log.cpp
@@ -79,7 +96,9 @@ add_library(pgbson SHARED
     ${MONGO_SRC}/mongo/util/net/message.cpp
     ${MONGO_SRC}/mongo/util/net/message_port.cpp
     ${MONGO_SRC}/mongo/util/net/sock.cpp
+    ${MONGO_SRC}/mongo/util/net/ssl_manager.cpp
     ${MONGO_SRC}/mongo/util/password.cpp
+    ${MONGO_SRC}/mongo/util/processinfo.cpp
     ${MONGO_SRC}/mongo/util/ramlog.cpp
     ${MONGO_SRC}/mongo/util/signal_handlers.cpp
     ${MONGO_SRC}/mongo/util/stringutils.cpp
@@ -88,6 +107,11 @@ add_library(pgbson SHARED
     ${MONGO_SRC}/mongo/util/timer.cpp
     ${MONGO_SRC}/mongo/util/trace.cpp
     ${MONGO_SRC}/mongo/util/util.cpp
+    ${MONGO_SRC}/mongo/util/version.cpp
+    ${MONGO_SRC}/third_party/murmurhash3/MurmurHash3.cpp
+
+# what about this?
+#    env.File('mongo/util/processinfo_${PYSYSPLATFORM}.cpp'),
 )
 
 target_link_libraries(pgbson ${Boost_LIBRARIES})
