@@ -30,6 +30,7 @@ set(MONGO_SRC "mongo-cxx-driver-v2.4/src/")
 include_directories(BEFORE ${MONGO_SRC} ${MONGO_SRC}/mongo)
 
 set(CMAKE_CXX_FLAGS -fPIC)
+add_definitions(-DMONGO_EXPOSE_MACROS -D_SCONS)
 
 add_library(pgbson SHARED
     pgbson_exports.cpp
