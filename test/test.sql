@@ -52,12 +52,12 @@ SELECT 'bson_get_string on bson from row',
     'from row', bson_get_text(data, 'string_field')  FROM data_table WHERE id = 2;
 
 INSERT INTO results_table(name, expected, got)
-SELECT 'bson_get_as_bson on string',
-    '{"":"from json"}'::bson::text, bson_get_as_bson(data, 'string_field')::text  FROM data_table WHERE id = 1;
+SELECT 'bson_get_bson on string',
+    '{"":"from json"}'::bson::text, bson_get_bson(data, 'string_field')::text  FROM data_table WHERE id = 1;
 
 INSERT INTO results_table(name, expected, got)
-SELECT 'bson_get_as_bson on nested object',
-    '{"ns":"boo"}'::bson::text, bson_get_as_bson(data, 'nested')::text  FROM data_table WHERE id = 1;
+SELECT 'bson_get_bson on nested object',
+    '{"ns":"boo"}'::bson::text, bson_get_bson(data, 'nested')::text  FROM data_table WHERE id = 1;
 
 \qecho * Operators
 
@@ -127,10 +127,10 @@ INSERT INTO results_table(name, expected, got)
 SELECT 'gte-gt', true, '{"a":3}'::bson >= '{"a":2}'::bson;
 
 \qecho * hash index creation
-CREATE INDEX test_hash_idx ON data_table USING hash (bson_get_as_bson(data, '_id'));
+CREATE INDEX test_hash_idx ON data_table USING hash (bson_get_bson(data, '_id'));
 
 \qecho * btree index creation
-CREATE INDEX test_btree_idx ON data_table USING btree (bson_get_as_bson(data, '_id'));
+CREATE INDEX test_btree_idx ON data_table USING btree (bson_get_bson(data, '_id'));
 
 -- this must be at the end
 \qecho * test results, check for failures!
