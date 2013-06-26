@@ -1,4 +1,4 @@
-// Copyright (c) 2012 Maciej Gajewski <maciej.gajewski0@gmail.com>
+// Copyright (c) 2012-2013 Maciej Gajewski <maciej.gajewski0@gmail.com>
 // 
 // Permission to use, copy, modify, and distribute this software and its documentation for any purpose, without fee, and without a written agreement is hereby granted,
 // provided that the above copyright notice and this paragraph and the following two paragraphs appear in all copies.
@@ -94,6 +94,27 @@ Datum
 bson_get_text(PG_FUNCTION_ARGS)
 {
     return bson_get<std::string>(fcinfo);
+}
+
+PG_FUNCTION_INFO_V1(bson_get_int);
+Datum
+bson_get_int(PG_FUNCTION_ARGS)
+{
+    return bson_get<int>(fcinfo);
+}
+
+PG_FUNCTION_INFO_V1(bson_get_double);
+Datum
+bson_get_double(PG_FUNCTION_ARGS)
+{
+    return bson_get<double>(fcinfo);
+}
+
+PG_FUNCTION_INFO_V1(bson_get_bigint);
+Datum
+bson_get_bigint(PG_FUNCTION_ARGS)
+{
+    return bson_get<int64>(fcinfo);
 }
 
 PG_FUNCTION_INFO_V1(bson_get_bson);

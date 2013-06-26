@@ -180,6 +180,26 @@ CREATE FUNCTION bson_get_bson(bson, text) RETURNS bson
 AS 'MODULE_PATHNAME'
 LANGUAGE C STRICT IMMUTABLE;
 
+-- returns (dotted) field value of integer field. Works only on integer fields.
+-- returns null if no such field
+-- fails if conversion is impossible
+CREATE FUNCTION bson_get_int(bson, text) RETURNS int4
+AS 'MODULE_PATHNAME'
+LANGUAGE C STRICT IMMUTABLE;
+
+-- returns (dotted) field value of double field. Works only on double and integer fields.
+-- returns null if no such field
+-- fails if conversion is impossible
+CREATE FUNCTION bson_get_double(bson, text) RETURNS float8
+AS 'MODULE_PATHNAME'
+LANGUAGE C STRICT IMMUTABLE;
+
+-- returns (dotted) field value of bigint field. Works only on bigint and integer fields.
+-- returns null if no such field
+-- fails if conversion is impossible
+CREATE FUNCTION bson_get_bigint(bson, text) RETURNS int8
+AS 'MODULE_PATHNAME'
+LANGUAGE C STRICT IMMUTABLE;
 
 --------------------------
 -- conversion to/from bson

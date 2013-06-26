@@ -1,4 +1,4 @@
-// Copyright (c) 2012 Maciej Gajewski <maciej.gajewski0@gmail.com>
+// Copyright (c) 2012-2013 Maciej Gajewski <maciej.gajewski0@gmail.com>
 // 
 // Permission to use, copy, modify, and distribute this software and its documentation for any purpose, without fee, and without a written agreement is hereby granted,
 // provided that the above copyright notice and this paragraph and the following two paragraphs appear in all copies.
@@ -68,9 +68,21 @@ std::string get_typename(Oid typid);
 
 // bson object inspection
 
-template<typename FieldType>
-static
-Datum convert_element(PG_FUNCTION_ARGS, const mongo::BSONElement e);
+
+template<typename FieldType> // field type is not really used anywher, it's just used for selecting proper convert function etc
+Datum convert_element(PG_FUNCTION_ARGS, const mongo::BSONElement e); // never implemented
+
+template<>
+Datum convert_element<std::string>(PG_FUNCTION_ARGS, const mongo::BSONElement e);
+
+template<>
+Datum convert_element<int>(PG_FUNCTION_ARGS, const mongo::BSONElement e);
+
+template<>
+Datum convert_element<double>(PG_FUNCTION_ARGS, const mongo::BSONElement e);
+
+template<>
+Datum convert_element<int64>(PG_FUNCTION_ARGS, const mongo::BSONElement e);
 
 // exception usedit indicate conversion error
 struct convertion_error
@@ -128,58 +140,6 @@ Datum bson_get(PG_FUNCTION_ARGS)
                 );
         }
     }
-}
-
-template<>
-Datum convert_element<std::string>(PG_FUNCTION_ARGS, const mongo::BSONElement e)
-{
-    std::stringstream ss;
-    switch(e.type())
-    {
-        case mongo::String:
-        case mongo::DBRef:
-        case mongo::Symbol:
-            return return_string(e.valuestr());
-
-        case mongo::NumberDouble:
-            ss << e._numberDouble();
-            break;
-
-        case mongo::jstOID:
-            ss << e.__oid().str();
-            break;
-
-        case mongo::Bool:
-            ss << std::boolalpha << e.boolean();
-            break;
-
-        case mongo::Date:
-            return return_string(
-                to_iso_extended_string(
-                    boost::posix_time::ptime(
-                        boost::gregorian::date(1970, 1, 1),
-                        boost::posix_time::milliseconds(e.date().millis)
-                        )
-                    )
-                );
-
-        case mongo::RegEx:
-            ss << e.regex();
-            break;
-
-        case mongo::NumberInt:
-            ss << e._numberInt();
-            break;
-
-        case mongo::NumberLong:
-            ss << e._numberLong();
-            break;
-
-        default:
-            throw convertion_error("text");
-
-    }
-    return return_string(ss.str());
 }
 
 // bson manipulation/creation

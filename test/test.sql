@@ -4,7 +4,9 @@ CREATE EXTENSION pgbson;
 \qecho * creating tables
 CREATE TEMPORARY TABLE data_table (
     id BIGSERIAL,
-    data BSON
+    data BSON,
+
+    PRIMARY KEY(id)
 );
 
 CREATE TEMPORARY TABLE results_table (
@@ -21,7 +23,7 @@ VALUES ('pgbson version', pgbson_version(), '0.5');
 \qecho * json format input
 INSERT INTO data_table(id, data)
 VALUES
-(1, '{"string_field":"from json", "integer_field":42, "nested":{"ns":"boo"}}');
+(1, '{"string_field":"from json", "integer_field":42, "int64_filed" : 1099511627776, "float": 3.14, "nested":{"ns":"boo"}}');
 
 \qecho * bson from row
 
@@ -58,6 +60,26 @@ SELECT 'bson_get_bson on string',
 INSERT INTO results_table(name, expected, got)
 SELECT 'bson_get_bson on nested object',
     '{"ns":"boo"}'::bson::text, bson_get_bson(data, 'nested')::text  FROM data_table WHERE id = 1;
+
+INSERT INTO results_table(name, expected, got)
+SELECT 'bson_get_int on bson from json',
+    42::text, bson_get_int(data, 'integer_field')::text  FROM data_table WHERE id = 1;
+
+INSERT INTO results_table(name, expected, got)
+SELECT 'bson_get_double on bson from json',
+    3.14::text, bson_get_double(data, 'float')::text  FROM data_table WHERE id = 1;
+
+INSERT INTO results_table(name, expected, got)
+SELECT 'bson_get_double on bson from json, integer field',
+    42::text, bson_get_double(data, 'integer_field')::text  FROM data_table WHERE id = 1;
+
+INSERT INTO results_table(name, expected, got)
+SELECT 'bson_get_bigint on bson from json',
+    1099511627776::text, bson_get_bigint(data, 'int64_filed')::text  FROM data_table WHERE id = 1;
+
+INSERT INTO results_table(name, expected, got)
+SELECT 'bson_get_bigint on bson from json, integer field',
+    42::text, bson_get_bigint(data, 'integer_field')::text  FROM data_table WHERE id = 1;
 
 \qecho * Operators
 

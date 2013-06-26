@@ -17,7 +17,7 @@ field with this extension is 25x faster than accessing JSON field with PLv8.
 Status
 ======
 
-Work still very much in progress. Watch this space!
+Quite usable already, but work still in progress. Watch this space!
 
 Example
 =======

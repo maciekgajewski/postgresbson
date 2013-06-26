@@ -1,4 +1,4 @@
-// Copyright (c) 2012 Maciej Gajewski <maciej.gajewski0@gmail.com>
+// Copyright (c) 2012-2013 Maciej Gajewski <maciej.gajewski0@gmail.com>
 // 
 // Permission to use, copy, modify, and distribute this software and its documentation for any purpose, without fee, and without a written agreement is hereby granted,
 // provided that the above copyright notice and this paragraph and the following two paragraphs appear in all copies.
@@ -11,12 +11,15 @@
 
 #include "pgbson_internal.hpp"
 
+#include <utils/numeric.h>
+
 Datum return_string(const std::string& s)
 {
     std::size_t text_size = s.length() + VARHDRSZ;
     text* new_text = (text *) palloc(text_size);
     SET_VARSIZE(new_text, text_size);
     std::memcpy(VARDATA(new_text), s.c_str(), s.length());
+
     PG_RETURN_TEXT_P(new_text);
 }
 
@@ -214,6 +217,105 @@ void datum_to_bson(const char* field_name, mongo::BSONObjBuilder& builder,
 
     PGBSON_LOG << "END datum_to_bson, field_name=" << field_name << PGBSON_ENDL;
 
+}
+
+template<>
+Datum convert_element<std::string>(PG_FUNCTION_ARGS, const mongo::BSONElement e)
+{
+    std::stringstream ss;
+    switch(e.type())
+    {
+        case mongo::String:
+        case mongo::DBRef:
+        case mongo::Symbol:
+            return return_string(std::string(e.valuestr(), e.valuestrsize()-1));
+
+        case mongo::NumberDouble:
+            ss << e._numberDouble();
+            break;
+
+        case mongo::jstOID:
+            ss << e.__oid().str();
+            break;
+
+        case mongo::Bool:
+            ss << std::boolalpha << e.boolean();
+            break;
+
+        case mongo::Date:
+            return return_string(
+                to_iso_extended_string(
+                    boost::posix_time::ptime(
+                        boost::gregorian::date(1970, 1, 1),
+                        boost::posix_time::milliseconds(e.date().millis)
+                        )
+                    )
+                );
+
+        case mongo::RegEx:
+            ss << e.regex();
+            break;
+
+        case mongo::NumberInt:
+            ss << e._numberInt();
+            break;
+
+        case mongo::NumberLong:
+            ss << e._numberLong();
+            break;
+
+        default:
+            throw convertion_error("text");
+
+    }
+    return return_string(ss.str());
+}
+
+template<>
+Datum convert_element<int>(PG_FUNCTION_ARGS, const mongo::BSONElement e)
+{
+    if(e.type() == mongo::NumberInt)
+    {
+        PG_RETURN_INT32(e._numberInt());
+    }
+    else
+    {
+        throw convertion_error("int4");
+    }
+}
+
+template<>
+Datum convert_element<double>(PG_FUNCTION_ARGS, const mongo::BSONElement e)
+{
+    switch(e.type())
+    {
+        case mongo::NumberDouble:
+            PG_RETURN_FLOAT8(e._numberDouble());
+
+        // this conversion has to be imlicitly allowedm, otherwise defining object form json would be pain int the ass
+        case mongo::NumberInt:
+            PG_RETURN_FLOAT8(static_cast<double>(e._numberInt()));
+
+        default:
+            throw convertion_error("float8");
+    }
+}
+
+template<>
+Datum convert_element<int64>(PG_FUNCTION_ARGS, const mongo::BSONElement e)
+{
+    switch(e.type())
+    {
+        case mongo::NumberLong:
+            PG_RETURN_INT64(e._numberLong());
+
+        // this conversion has to be imlicitly allowedm, otherwise defining object form json would be pain int the ass
+        case mongo::NumberInt:
+            PG_RETURN_INT64(static_cast<int64>(e._numberInt()));
+
+        default:
+            throw convertion_error("int8");
+    }
 }
 
 const char* bson_type_name(const mongo::BSONElement& e)
