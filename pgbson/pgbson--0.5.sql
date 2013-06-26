@@ -176,7 +176,7 @@ LANGUAGE C STRICT IMMUTABLE;
 -- returns (dotted) field as bson object.
 -- scalars are returned as bson objects with single, anonymous field.
 -- returns null if no such field
-CREATE FUNCTION bson_get_as_bson(bson, text) RETURNS bson
+CREATE FUNCTION bson_get_bson(bson, text) RETURNS bson
 AS 'MODULE_PATHNAME'
 LANGUAGE C STRICT IMMUTABLE;
 

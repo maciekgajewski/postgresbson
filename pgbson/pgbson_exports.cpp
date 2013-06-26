@@ -96,9 +96,9 @@ bson_get_text(PG_FUNCTION_ARGS)
     return bson_get<std::string>(fcinfo);
 }
 
-PG_FUNCTION_INFO_V1(bson_get_as_bson);
+PG_FUNCTION_INFO_V1(bson_get_bson);
 Datum
-bson_get_as_bson(PG_FUNCTION_ARGS)
+bson_get_bson(PG_FUNCTION_ARGS)
 {
     bytea* arg = GETARG_BSON(0);
     mongo::BSONObj object(VARDATA_ANY(arg));
