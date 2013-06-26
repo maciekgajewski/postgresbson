@@ -26,11 +26,14 @@ set(PG_EXTENSIONDIR "${PG_SHAREDIR}/extension")
 # building
 
 include_directories( ${PG_INCLUDEDIR} )
+set(CMAKE_CXX_FLAGS -fPIC)
+
+# config required by mongo
 set(MONGO_SRC "mongo-cxx-driver-v2.4/src/")
 include_directories(BEFORE ${MONGO_SRC} ${MONGO_SRC}/mongo)
-
-set(CMAKE_CXX_FLAGS -fPIC)
 add_definitions(-DMONGO_EXPOSE_MACROS -D_SCONS)
+# TODO: make the below conditional using some CMake os-detection fetures
+set(PYSYSPLATFORM linux2)
 
 add_library(pgbson SHARED
     pgbson_exports.cpp
@@ -109,10 +112,8 @@ add_library(pgbson SHARED
     ${MONGO_SRC}/mongo/util/trace.cpp
     ${MONGO_SRC}/mongo/util/util.cpp
     ${MONGO_SRC}/mongo/util/version.cpp
+    ${MONGO_SRC}/mongo/util/processinfo_${PYSYSPLATFORM}.cpp
     ${MONGO_SRC}/third_party/murmurhash3/MurmurHash3.cpp
-
-# what about this?
-#    env.File('mongo/util/processinfo_${PYSYSPLATFORM}.cpp'),
 )
 
 target_link_libraries(pgbson ${Boost_LIBRARIES})
