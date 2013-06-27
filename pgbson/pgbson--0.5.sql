@@ -201,6 +201,18 @@ CREATE FUNCTION bson_get_bigint(bson, text) RETURNS int8
 AS 'MODULE_PATHNAME'
 LANGUAGE C STRICT IMMUTABLE;
 
+------------------
+-- Array utilities
+------------------
+
+-- returns the size of array field.
+-- If field is scalar (or non-array object), returns 1
+-- If there is no such field, returns NULL
+CREATE FUNCTION bson_array_size(bson, text) RETURNS int8
+AS 'MODULE_PATHNAME'
+LANGUAGE C STRICT IMMUTABLE;
+
+
 --------------------------
 -- conversion to/from bson
 --------------------------

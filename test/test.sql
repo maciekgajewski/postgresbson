@@ -25,6 +25,10 @@ INSERT INTO data_table(id, data)
 VALUES
 (1, '{"string_field":"from json", "integer_field":42, "int64_filed" : 1099511627776, "float": 3.14, "nested":{"ns":"boo"}}');
 
+INSERT INTO data_table(id, data)
+VALUES
+(3, '{"array1": [ 1, 2, 3, 4, 5 ], "array2" : ["a", "b", "c"], "array3" : [{"a": 1 }, { "b" : 2.3 } ], "scalar_int" : 42 }');
+
 \qecho * bson from row
 
 CREATE TYPE nested_obj_type AS (ns TEXT);
@@ -80,6 +84,24 @@ SELECT 'bson_get_bigint on bson from json',
 INSERT INTO results_table(name, expected, got)
 SELECT 'bson_get_bigint on bson from json, integer field',
     42::text, bson_get_bigint(data, 'integer_field')::text  FROM data_table WHERE id = 1;
+
+\qecho * Array tools
+
+INSERT INTO results_table(name, expected, got)
+SELECT 'bson_array_size on array with 5 integers',
+    5::text, bson_array_size(data, 'array1')::text  FROM data_table WHERE id = 3;
+
+INSERT INTO results_table(name, expected, got)
+SELECT 'bson_array_size on array with 3 strings',
+    3::text, bson_array_size(data, 'array2')::text  FROM data_table WHERE id = 3;
+
+INSERT INTO results_table(name, expected, got)
+SELECT 'bson_array_size on array with 2 objects',
+    2::text, bson_array_size(data, 'array3')::text  FROM data_table WHERE id = 3;
+
+INSERT INTO results_table(name, expected, got)
+SELECT 'bson_array_size on array scalar',
+    1::text, bson_array_size(data, 'scalar_int')::text  FROM data_table WHERE id = 3;
 
 \qecho * Operators
 

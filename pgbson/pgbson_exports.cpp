@@ -198,4 +198,31 @@ bson_hash(PG_FUNCTION_ARGS)
     PG_RETURN_INT32(object0.hash());
 }
 
+// Array operations
+PG_FUNCTION_INFO_V1(bson_array_size);
+Datum
+bson_array_size(PG_FUNCTION_ARGS)
+{
+    bytea* arg = GETARG_BSON(0);
+    mongo::BSONObj object(VARDATA_ANY(arg));
+
+    text* arg2 = PG_GETARG_TEXT_P(1);
+    std::string field_name(VARDATA(arg2),  VARSIZE(arg2)-VARHDRSZ);
+
+    mongo::BSONElement el = object.getFieldDotted(field_name);
+    if (el.eoo())
+    {
+        PG_RETURN_NULL();
+    }
+    else if (el.type() == mongo::Array)
+    {
+        PG_RETURN_INT32(el.embeddedObject().nFields());
+    }
+    else
+    {
+        // scalar (or non-array object)
+        PG_RETURN_INT32(1);
+    }
 }
+
+} // extern C
