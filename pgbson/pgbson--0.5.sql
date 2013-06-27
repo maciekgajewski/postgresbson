@@ -212,6 +212,10 @@ CREATE FUNCTION bson_array_size(bson, text) RETURNS int8
 AS 'MODULE_PATHNAME'
 LANGUAGE C STRICT IMMUTABLE;
 
+-- Unwinwds array field into set of bson objects.
+CREATE FUNCTION bson_unwind_array(bson, text) RETURNS SETOF bson
+AS 'MODULE_PATHNAME'
+LANGUAGE C STRICT IMMUTABLE;
 
 --------------------------
 -- conversion to/from bson

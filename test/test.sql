@@ -103,6 +103,31 @@ INSERT INTO results_table(name, expected, got)
 SELECT 'bson_array_size on array scalar',
     1::text, bson_array_size(data, 'scalar_int')::text  FROM data_table WHERE id = 3;
 
+\qecho * Unwind array
+
+CREATE TEMPORARY TABLE unwound_arrays
+(
+    name TEXT,
+    item BSON
+);
+
+INSERT INTO unwound_arrays(name, item)
+SELECT 'array of 5 integers', bson_unwind_array(data, 'array1') FROM data_table WHERE id = 3;
+
+INSERT INTO unwound_arrays(name, item)
+SELECT 'array of 3 strings', bson_unwind_array(data, 'array2') FROM data_table WHERE id = 3;
+
+INSERT INTO unwound_arrays(name, item)
+SELECT 'array of 2 objects', bson_unwind_array(data, 'array3') FROM data_table WHERE id = 3;
+
+INSERT INTO unwound_arrays(name, item)
+SELECT 'scalar', bson_unwind_array(data, 'scalar_int') FROM data_table WHERE id = 3;
+
+INSERT INTO unwound_arrays(name, item)
+SELECT 'not existing', bson_unwind_array(data, 'nope') FROM data_table WHERE id = 3;
+
+SELECT * FROM unwound_arrays;
+
 \qecho * Operators
 
 INSERT INTO results_table(name, expected, got)

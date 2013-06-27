@@ -28,6 +28,7 @@ extern "C" {
 #include "utils/timestamp.h"
 #include "parser/parse_coerce.h"
 #include "catalog/pg_type.h"
+#include "funcapi.h"
 
 // bson access macros
 #define DatumGetBson(X) ((bytea *) PG_DETOAST_DATUM_PACKED(X))

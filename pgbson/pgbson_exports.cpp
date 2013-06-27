@@ -174,7 +174,7 @@ bson_compare(PG_FUNCTION_ARGS)
     PG_RETURN_INT32(object0.woCompare(object1));
 }
 
-// binsry equality
+// binary equality
 PG_FUNCTION_INFO_V1(bson_binary_equal);
 Datum
 bson_binary_equal(PG_FUNCTION_ARGS)
@@ -199,6 +199,7 @@ bson_hash(PG_FUNCTION_ARGS)
 }
 
 // Array operations
+
 PG_FUNCTION_INFO_V1(bson_array_size);
 Datum
 bson_array_size(PG_FUNCTION_ARGS)
@@ -223,6 +224,86 @@ bson_array_size(PG_FUNCTION_ARGS)
         // scalar (or non-array object)
         PG_RETURN_INT32(1);
     }
+}
+
+PG_FUNCTION_INFO_V1(bson_unwind_array);
+Datum
+bson_unwind_array(PG_FUNCTION_ARGS)
+{
+    FuncCallContext  *funcctx;
+
+    typedef std::vector<mongo::BSONElement> ElementVector;
+
+    struct FunctionContext
+    {
+        ElementVector array;
+        mongo::BSONObj deepCopy;
+    };
+
+    if (SRF_IS_FIRSTCALL())
+    {
+        funcctx = SRF_FIRSTCALL_INIT();
+        MemoryContext oldcontext = MemoryContextSwitchTo(funcctx->multi_call_memory_ctx);
+
+        bytea* arg = GETARG_BSON(0);
+        mongo::BSONObj object(VARDATA_ANY(arg));
+
+        text* arg2 = PG_GETARG_TEXT_P(1);
+        std::string field_name(VARDATA(arg2),  VARSIZE(arg2)-VARHDRSZ);
+
+        // deep-copy thr object into call context
+        // I'm not using palloc. To do it correctly, I'd have to use custom allocators
+        FunctionContext* context = new FunctionContext();
+        context->deepCopy = object.copy();
+        funcctx->user_fctx = context;
+
+        mongo::BSONElement el = object.getFieldDotted(field_name);
+        if (el.eoo())
+        {
+            // nothing, leave tyhe array empty
+        }
+        else if (el.type() == mongo::Array)
+        {
+            ElementVector array = el.Array();
+            context->array.swap(array);
+        }
+        else
+        {
+            context->array.push_back(el);
+        }
+
+        MemoryContextSwitchTo(oldcontext);
+    }
+
+    funcctx = SRF_PERCALL_SETUP();
+
+    FunctionContext* context = reinterpret_cast<FunctionContext*>(funcctx->user_fctx);
+
+    if (funcctx->call_cntr == context->array.size())
+    {
+        delete context;
+        SRF_RETURN_DONE(funcctx);
+    }
+    else
+    {
+        const mongo::BSONElement el = context->array[funcctx->call_cntr];
+        mongo::BSONObj objToReturn;
+
+        if (el.isABSONObj())
+        {
+            objToReturn = el.embeddedObject();
+        }
+        else
+        {
+            mongo::BSONObjBuilder builder;
+            builder.appendAs(el, "");
+            objToReturn = builder.obj();
+        }
+
+        SRF_RETURN_NEXT(funcctx, return_bson(objToReturn));
+    }
+
+
 }
 
 } // extern C
