@@ -69,6 +69,7 @@ bson_recv(PG_FUNCTION_ARGS)
     try
     {
         mongo::BSONObj object(buf->data);
+        buf->cursor += object.objsize();
         // copy to palloc-ed buffer
         return return_bson(object);
     }
@@ -76,7 +77,7 @@ bson_recv(PG_FUNCTION_ARGS)
     {
         ereport(
             ERROR,
-            (errcode(ERRCODE_INVALID_TEXT_REPRESENTATION), errmsg("invalid binary input for BSON"))
+            (errcode(ERRCODE_INVALID_BINARY_REPRESENTATION), errmsg("invalid binary input for BSON"))
         );
     }
 }
