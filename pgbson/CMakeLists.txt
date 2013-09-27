@@ -2,7 +2,7 @@ project(pgbson)
 cmake_minimum_required(VERSION 2.8)
 find_package( Boost 1.36.0 COMPONENTS date_time thread filesystem)
 include_directories(${Boost_INCLUDE_DIRS})
-add_definitions(-DPGBSON_LOGGING)
+#add_definitions(-DPGBSON_LOGGING)
 
 #find postgres
 #  variables set: PG_INCLUDEDIR, PG_LIBDIR, PG_EXTENSIONDIR
