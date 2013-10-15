@@ -19,7 +19,7 @@ Still, the PLv8 and JSON functions and operators may be used to build and manipu
 Status
 ======
 
-Statble, used in production.
+Stable, used in production.
 
 
 Example
@@ -64,7 +64,7 @@ Operators and comparison:
 *  Operators: =, <>, <=, <, >=, >, == (binary equality), <<>> (binary inequality)
 *  bson_hash(bson) RETURNS INT4
 
-Field access (supports do notation):
+Field access (supports dot notation):
 
 *  bson_get_text(bson, text) RETURNS text
 *  bson_get_int(bson, text) RETURNS int4
