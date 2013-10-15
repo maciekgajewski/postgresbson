@@ -6,7 +6,7 @@ C++ compiler
 git clone https://github.com/maciekgajewski/postgresbson.git
 mkdir postgresbson-build
 cd postgresbson-build
-cmake ../posdtgresbson
+cmake ../postgresbson
 make
 make install # may require sudo
 make test

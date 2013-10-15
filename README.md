@@ -14,10 +14,13 @@ This extension allows for smoother migration path from MongoDB to PostgreSQL.
 Additionaly, parsing BSON is much faster than JSON. Preliminary bechnmarks show that accessing BSON
 field with this extension is 25x faster than accessing JSON field with PLv8.
 
+Still, the PLv8 and JSON functions and operators may be used to build and manipulate BSON data.
+
 Status
 ======
 
-Quite usable already, but work still in progress. Watch this space!
+Statble, used in production.
+
 
 Example
 =======
@@ -45,10 +48,38 @@ Requires: CMake, Boost, pg_config, C++ compiler
     git clone https://github.com/maciekgajewski/postgresbson.git
     mkdir postgresbson-build
     cd postgresbson-build
-    cmake ../posdtgresbson
+    cmake ../postgresbson
     make
     make install # may require sudo
     make test
+
+
+Quick reference
+===============
+
+The module defines BSON data type with operator families defined for B-TREE and HASH indexes.
+
+Operators and comparison:
+
+*  Operators: =, <>, <=, <, >=, >, == (binary equality), <<>> (binary inequality)
+*  bson_hash(bson) RETURNS INT4
+
+Field access (supports do notation):
+
+*  bson_get_text(bson, text) RETURNS text
+*  bson_get_int(bson, text) RETURNS int4
+*  bson_get_double(bson, text) RETURNS float8
+*  bson_get_bigint(bson, text) RETURNS int8
+*  bson_get_bson(bson, text) RETURNS bson
+
+Array field support:
+
+*  bson_array_size(bson, text) RETURNS int8
+*  bson_unwind_array(bson, text) RETURNS SETOF bson
+
+Object construction:
+
+*  row_to_bson(record) RETURNS bson
 
 See also
 ========
