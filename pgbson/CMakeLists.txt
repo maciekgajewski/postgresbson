@@ -11,6 +11,9 @@ execute_process(
     COMMAND pg_config --includedir-server
     OUTPUT_VARIABLE PG_INCLUDEDIR OUTPUT_STRIP_TRAILING_WHITESPACE
 )
+if(NOT PG_INCLUDEDIR)
+    message(FATAL_ERROR "pg_config unavailable. Make sure it is in your path")
+endif()
 
 execute_process(
     COMMAND pg_config --libdir
