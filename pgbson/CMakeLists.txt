@@ -1,40 +1,27 @@
 project(pgbson)
 cmake_minimum_required(VERSION 2.8)
+
+# find and use boost
 find_package( Boost 1.36.0 COMPONENTS date_time thread filesystem)
 include_directories(${Boost_INCLUDE_DIRS})
+
+# find and use postgres
+set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/pgbson" ${CMAKE_MODULE_PATH})
+find_package(Postgres)
+include_directories( ${Postgres_INCLUDEDIR} )
+
+# uncomment this to enable logging
 #add_definitions(-DPGBSON_LOGGING)
-
-#find postgres
-#  variables set: PG_INCLUDEDIR, PG_LIBDIR, PG_EXTENSIONDIR
-
-execute_process(
-    COMMAND pg_config --includedir-server
-    OUTPUT_VARIABLE PG_INCLUDEDIR OUTPUT_STRIP_TRAILING_WHITESPACE
-)
-if(NOT PG_INCLUDEDIR)
-    message(FATAL_ERROR "pg_config unavailable. Make sure it is in your path")
-endif()
-
-execute_process(
-    COMMAND pg_config --libdir
-    OUTPUT_VARIABLE PG_LIBDIR OUTPUT_STRIP_TRAILING_WHITESPACE
-)
-
-execute_process(
-    COMMAND pg_config --sharedir
-    OUTPUT_VARIABLE PG_SHAREDIR OUTPUT_STRIP_TRAILING_WHITESPACE
-)
-set(PG_EXTENSIONDIR "${PG_SHAREDIR}/extension")
 
 # building
 
-include_directories( ${PG_INCLUDEDIR} )
 set(CMAKE_CXX_FLAGS -fPIC)
 
 # config required by mongo
 set(MONGO_SRC "mongo-cxx-driver-v2.4/src/")
 include_directories(BEFORE ${MONGO_SRC} ${MONGO_SRC}/mongo)
 add_definitions(-DMONGO_EXPOSE_MACROS -D_SCONS)
+
 # TODO: make the below conditional using some CMake os-detection fetures
 set(PYSYSPLATFORM linux2)
 
@@ -122,6 +109,6 @@ add_library(pgbson SHARED
 target_link_libraries(pgbson ${Boost_LIBRARIES})
 
 # installation
-install(TARGETS pgbson DESTINATION ${PG_LIBDIR}
+install(TARGETS pgbson DESTINATION ${Postgres_LIBDIR}
     PERMISSIONS WORLD_EXECUTE GROUP_EXECUTE OWNER_EXECUTE WORLD_READ GROUP_READ OWNER_READ OWNER_WRITE)
-install(FILES pgbson.control pgbson--0.5.sql DESTINATION ${PG_EXTENSIONDIR})
+install(FILES pgbson.control pgbson--0.5.sql DESTINATION ${Postgres_EXTENSIONDIR})
