@@ -24,7 +24,7 @@ PG_MODULE_MAGIC;
 PG_FUNCTION_INFO_V1(pgbson_version);
 Datum pgbson_version(PG_FUNCTION_ARGS)
 {
-    return return_string("0.5");
+    return return_string("1.0");
 }
 
 // bson output - to json

@@ -111,4 +111,4 @@ target_link_libraries(pgbson ${Boost_LIBRARIES})
 # installation
 install(TARGETS pgbson DESTINATION ${Postgres_LIBDIR}
     PERMISSIONS WORLD_EXECUTE GROUP_EXECUTE OWNER_EXECUTE WORLD_READ GROUP_READ OWNER_READ OWNER_WRITE)
-install(FILES pgbson.control pgbson--0.5.sql DESTINATION ${Postgres_EXTENSIONDIR})
+install(FILES pgbson.control pgbson--1.0.sql DESTINATION ${Postgres_EXTENSIONDIR})

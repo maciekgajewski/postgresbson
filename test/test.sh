@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# if you need to control the host, port, database name, user, password and otghers, set approipriate environment variables
+
 PSQL=psql
 CREATEDB=createdb
 DROPDB=dropdb

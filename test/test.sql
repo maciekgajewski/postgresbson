@@ -17,7 +17,7 @@ CREATE TEMPORARY TABLE results_table (
 
 \qecho * testing extension version
 INSERT INTO results_table(name, got, expected)
-VALUES ('pgbson version', pgbson_version(), '0.5');
+VALUES ('pgbson version', pgbson_version(), '1.0');
 
 
 \qecho * json format input
