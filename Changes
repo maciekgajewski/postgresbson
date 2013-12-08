@@ -1,0 +1,12 @@
+Revision history
+
+0.5 - 21-11-2013
+
+	All development to date.
+
+1.0 - 8-12-20113
+
+	* Small fixes to build system: FindPostgres.cmake created, Postgres location cached.
+	* PGXN meta info included (David E. Wheeler)
+	* This file created
+
