@@ -4,7 +4,7 @@
    "description": "This PostgreSQL extension brings BSON data type, together with functions to create, inspect and manipulate BSON objects.",
    "version": "1.0.0",
    "maintainer": "Maciej Gajewski <maciej.gajewski0@gmail.com>",
-   "license": "postgres",
+   "license": "postgresql",
    "provides": {
       "pgbson": {
          "abstract": "BSON support for PostgreSQL",
