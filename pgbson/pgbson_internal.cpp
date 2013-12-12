@@ -11,7 +11,10 @@
 
 #include "pgbson_internal.hpp"
 
+extern "C" {
 #include <utils/numeric.h>
+#include <access/tuptoaster.h>
+}
 
 Datum return_string(const std::string& s)
 {

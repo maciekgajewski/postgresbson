@@ -19,16 +19,17 @@
 #endif
 
 extern "C" {
-#include "postgres.h"
-#include "fmgr.h"
-#include "executor/executor.h"
-#include "utils/typcache.h"
-#include "utils/lsyscache.h"
-#include "utils/syscache.h"
-#include "utils/timestamp.h"
-#include "parser/parse_coerce.h"
-#include "catalog/pg_type.h"
-#include "funcapi.h"
+#include <postgres.h>
+#include <fmgr.h>
+#include <executor/executor.h>
+#include <utils/typcache.h>
+#include <utils/lsyscache.h>
+#include <utils/syscache.h>
+#include <utils/timestamp.h>
+#include <parser/parse_coerce.h>
+#include <catalog/pg_type.h>
+#include <funcapi.h>
+#include <lib/stringinfo.h>
 
 // bson access macros
 #define DatumGetBson(X) ((bytea *) PG_DETOAST_DATUM_PACKED(X))
