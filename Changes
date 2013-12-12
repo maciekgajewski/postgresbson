@@ -4,9 +4,13 @@ Revision history
 
 	All development to date.
 
-1.0 - 8-12-20113
+1.0 - 8-12-2013
 
 	* Small fixes to build system: FindPostgres.cmake created, Postgres location cached.
 	* PGXN meta info included (David E. Wheeler)
 	* This file created
+
+1.0.1 - 12-1213
+
+	* Compilation problems with Postgres 9.3 fixed (issue 3)
 
