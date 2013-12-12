@@ -45,10 +45,10 @@ Building
 Tested on on Linux with Postgres 9.2. Should work with any Postgres 9.x.
 Requires: CMake, Boost, pg_config, C++ compiler
 
-    git clone https://github.com/maciekgajewski/postgresbson.git
+    git clone https://github.com/maciekgajewski/postgresbson.git # or unpack downloaded source package
     mkdir postgresbson-build
     cd postgresbson-build
-    cmake ../postgresbson
+    cmake ../postgresbson # pg_config must be in your path, it is required to locate postgres
     make
     make install # may require sudo
     make test
