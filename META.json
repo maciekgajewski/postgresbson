@@ -10,7 +10,7 @@
          "abstract": "BSON support for PostgreSQL",
          "file": "pgbson/pgbson_exports.cpp",
          "docfile": "README.md",
-         "version": "1.0.0"
+         "version": "1.0.1"
       }
    },
    "prereqs": {
